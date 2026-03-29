@@ -18,7 +18,7 @@ legacy aliases are still supported:
 ## behavior
 
 - keeps secrets server-side only
-- adds cors for the blog origin
+- adds cors for allowed blog origins
 - caches spotify for 30s
 - caches github contributions for 15m
 - rate limits by ip to reduce abuse
@@ -72,7 +72,7 @@ bun run dev
 ## env vars
 
 - `PORT` - service port, default `4010`
-- `ALLOWED_ORIGIN` - blog origin allowed by cors
+- `ALLOWED_ORIGINS` - comma-separated list of allowed blog origins for cors
 - `GITHUB_TOKEN` - github personal access token
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
@@ -208,3 +208,17 @@ PUBLIC_STATUS_API_BASE_URL=https://pulse.shmk.dev
 ```
 
 the blog currently calls the versioned widget endpoints and keeps a reusable client-side widget loader so future widgets can plug into the same pattern.
+
+## stage + production domains
+
+for current development, `pulse` should allow both local and hosted blog origins, for example:
+
+```bash
+ALLOWED_ORIGINS=http://localhost:7666,http://127.0.0.1:7666,https://blog.shmk.dev,https://stage-blog.shmk.dev
+```
+
+that lets the same pulse instance work with:
+
+- local blog dev
+- `stage-blog.shmk.dev`
+- `blog.shmk.dev`

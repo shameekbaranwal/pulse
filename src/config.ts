@@ -1,6 +1,6 @@
 export interface PulseConfig {
   port: number;
-  allowedOrigin: string;
+  allowedOrigins: string[];
   rateLimitMax: number;
   rateLimitWindowMs: number;
   spotifyCacheTTL: number;
@@ -16,10 +16,21 @@ function readNumber(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function readOrigins(value: string | undefined): string[] {
+  if (!value) return ["*"];
+
+  const origins = value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return origins.length > 0 ? origins : ["*"];
+}
+
 export function loadConfig(env: Record<string, string | undefined> = Bun.env): PulseConfig {
   return {
     port: readNumber(env.PORT, 4010),
-    allowedOrigin: env.ALLOWED_ORIGIN || "*",
+    allowedOrigins: readOrigins(env.ALLOWED_ORIGINS),
     rateLimitMax: readNumber(env.RATE_LIMIT_MAX, 120),
     rateLimitWindowMs: readNumber(env.RATE_LIMIT_WINDOW_MS, 60_000),
     spotifyCacheTTL: readNumber(env.SPOTIFY_CACHE_TTL_MS, 30_000),

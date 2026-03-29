@@ -26,13 +26,13 @@ export function createPulseServer({ config, spotify, github, clock = { now: () =
   const githubCache = new TTLCache<ContributionGraph | null>(clock);
   const rateLimiter = new InMemoryRateLimiter(config.rateLimitMax, config.rateLimitWindowMs, clock);
 
-  async function handleSpotify() {
+  async function handleSpotify(request: Request) {
     const now = clock.now();
     const cacheKey = "spotify:now-playing";
     const cached = spotifyCache.get(cacheKey);
 
     if (cached.found) {
-      return jsonResponse(config, {
+      return jsonResponse(config, request, {
         data: { track: cached.value },
         meta: createMeta(now, config.spotifyCacheTTL, true),
       }, { headers: buildCacheHeaders(Math.floor(config.spotifyCacheTTL / 1000)) });
@@ -41,19 +41,19 @@ export function createPulseServer({ config, spotify, github, clock = { now: () =
     try {
       const track = await spotify.getNowPlaying();
       spotifyCache.set(cacheKey, track, config.spotifyCacheTTL);
-      return jsonResponse(config, {
+      return jsonResponse(config, request, {
         data: { track },
         meta: createMeta(now, config.spotifyCacheTTL, false),
       }, { headers: buildCacheHeaders(Math.floor(config.spotifyCacheTTL / 1000)) });
     } catch {
-      return jsonResponse(config, {
+      return jsonResponse(config, request, {
         data: { track: null },
         meta: createMeta(now, 10_000, false),
       }, { status: 503, headers: buildCacheHeaders(10) });
     }
   }
 
-  async function handleGithub(url: URL) {
+  async function handleGithub(request: Request, url: URL) {
     const now = clock.now();
     const username = url.searchParams.get("username") || "shameekbaranwal";
     const requestedDays = Number(url.searchParams.get("days") || 90);
@@ -62,7 +62,7 @@ export function createPulseServer({ config, spotify, github, clock = { now: () =
     const cached = githubCache.get(cacheKey);
 
     if (cached.found) {
-      return jsonResponse(config, {
+      return jsonResponse(config, request, {
         data: { graph: cached.value, username, days },
         meta: createMeta(now, config.githubCacheTTL, true),
       }, { headers: buildCacheHeaders(Math.floor(config.githubCacheTTL / 1000)) });
@@ -71,12 +71,12 @@ export function createPulseServer({ config, spotify, github, clock = { now: () =
     try {
       const graph = await github.getContributions(username, days);
       githubCache.set(cacheKey, graph, config.githubCacheTTL);
-      return jsonResponse(config, {
+      return jsonResponse(config, request, {
         data: { graph, username, days },
         meta: createMeta(now, config.githubCacheTTL, false),
       }, { headers: buildCacheHeaders(Math.floor(config.githubCacheTTL / 1000)) });
     } catch {
-      return jsonResponse(config, {
+      return jsonResponse(config, request, {
         data: { graph: null, username, days },
         meta: createMeta(now, 60_000, false),
       }, { status: 503, headers: buildCacheHeaders(60) });
@@ -86,12 +86,12 @@ export function createPulseServer({ config, spotify, github, clock = { now: () =
   return {
     async fetch(request: Request): Promise<Response> {
       if (request.method === "OPTIONS") {
-        return optionsResponse(config);
+        return optionsResponse(config, request);
       }
 
       const ip = getClientIp(request);
       if (!rateLimiter.allow(ip)) {
-        return jsonResponse(config, { error: "rate limit exceeded" }, {
+        return jsonResponse(config, request, { error: "rate limit exceeded" }, {
           status: 429,
           headers: buildCacheHeaders(10),
         });
@@ -100,7 +100,7 @@ export function createPulseServer({ config, spotify, github, clock = { now: () =
       const url = new URL(request.url);
 
       if (url.pathname === "/health") {
-        return jsonResponse(config, {
+        return jsonResponse(config, request, {
           ok: true,
           service: "pulse",
           now: new Date(clock.now()).toISOString(),
@@ -108,18 +108,18 @@ export function createPulseServer({ config, spotify, github, clock = { now: () =
       }
 
       if (request.method !== "GET") {
-        return jsonResponse(config, { error: "method not allowed" }, { status: 405 });
+        return jsonResponse(config, request, { error: "method not allowed" }, { status: 405 });
       }
 
       if (url.pathname === "/api/v1/widgets/spotify/now-playing" || url.pathname === "/api/spotify/now-playing") {
-        return handleSpotify();
+        return handleSpotify(request);
       }
 
       if (url.pathname === "/api/v1/widgets/github/contributions" || url.pathname === "/api/github/contributions") {
-        return handleGithub(url);
+        return handleGithub(request, url);
       }
 
-      return jsonResponse(config, { error: "not found" }, { status: 404 });
+      return jsonResponse(config, request, { error: "not found" }, { status: 404 });
     },
   };
 }

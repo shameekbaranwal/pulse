@@ -29,7 +29,7 @@ describe("createPulseServer", () => {
     };
 
     const server = createPulseServer({
-      config: loadConfig({ ALLOWED_ORIGIN: "https://blog.shmk.dev" }),
+      config: loadConfig({ ALLOWED_ORIGINS: "https://blog.shmk.dev,https://stage-blog.shmk.dev" }),
       clock,
       spotify: {
         async getNowPlaying() {
@@ -44,13 +44,15 @@ describe("createPulseServer", () => {
       },
     });
 
-    const first = await server.fetch(new Request("https://pulse.test/api/v1/widgets/spotify/now-playing"));
+    const first = await server.fetch(new Request("https://pulse.test/api/v1/widgets/spotify/now-playing", {
+      headers: { Origin: "https://stage-blog.shmk.dev" },
+    }));
     const firstPayload = await first.json() as any;
 
     expect(first.status).toBe(200);
     expect(firstPayload.data.track).toEqual(track);
     expect(firstPayload.meta.cached).toBe(false);
-    expect(first.headers.get("Access-Control-Allow-Origin")).toBe("https://blog.shmk.dev");
+    expect(first.headers.get("Access-Control-Allow-Origin")).toBe("https://stage-blog.shmk.dev");
 
     const second = await server.fetch(new Request("https://pulse.test/api/v1/widgets/spotify/now-playing"));
     const secondPayload = await second.json() as any;
@@ -129,7 +131,7 @@ describe("createPulseServer", () => {
 
   it("handles cors preflight", async () => {
     const server = createPulseServer({
-      config: loadConfig({ ALLOWED_ORIGIN: "https://blog.shmk.dev" }),
+      config: loadConfig({ ALLOWED_ORIGINS: "https://blog.shmk.dev,https://stage-blog.shmk.dev" }),
       clock,
       spotify: {
         async getNowPlaying() {
@@ -143,7 +145,10 @@ describe("createPulseServer", () => {
       },
     });
 
-    const response = await server.fetch(new Request("https://pulse.test/api/v1/widgets/spotify/now-playing", { method: "OPTIONS" }));
+    const response = await server.fetch(new Request("https://pulse.test/api/v1/widgets/spotify/now-playing", {
+      method: "OPTIONS",
+      headers: { Origin: "https://blog.shmk.dev" },
+    }));
 
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://blog.shmk.dev");

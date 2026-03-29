@@ -51,6 +51,9 @@
 
 required or useful env vars live in `.env.example`.
 
+- use `ALLOWED_ORIGINS` as a comma-separated list for cors, not a single origin
+- current development should support local blog dev plus `blog.shmk.dev` and `stage-blog.shmk.dev`
+
 ## local development
 
 ```bash
