@@ -1,0 +1,16 @@
+{
+  "name": "pulse",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "test": "bun test",
+    "check": "tsc --noEmit"
+  }
+}
