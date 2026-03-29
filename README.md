@@ -54,6 +54,13 @@ docker compose up --build
 
 service will be available at `http://localhost:4010`.
 
+or build the image directly:
+
+```bash
+./build-docker-image.sh
+./build-docker-image.sh pulse:latest
+```
+
 for homeserver deployment later, the intended flow is:
 
 1. build the image in this repo
@@ -63,7 +70,7 @@ for homeserver deployment later, the intended flow is:
 example:
 
 ```bash
-docker build -t pulse:latest .
+./build-docker-image.sh pulse:latest
 ```
 
 ## tests + checks
