@@ -73,7 +73,7 @@ bun run dev
 
 ## integration with the blog
 
-- the blog should only know `PUBLIC_STATUS_API_BASE_URL`
+- the blog should only know `PUBLIC_PULSE_API_BASE_URL`
 - the blog should fetch these endpoints client-side
 - the blog should render fallback states if pulse is unavailable
 - changes here should not require switching the blog away from static output

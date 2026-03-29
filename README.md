@@ -201,10 +201,10 @@ github:
 
 ## frontend wiring
 
-set `PUBLIC_STATUS_API_BASE_URL` in the blog repo to this service url, for example:
+set `PUBLIC_PULSE_API_BASE_URL` in the blog repo to this service url, for example:
 
 ```bash
-PUBLIC_STATUS_API_BASE_URL=https://pulse.shmk.dev
+PUBLIC_PULSE_API_BASE_URL=https://pulse.shmk.dev
 ```
 
 the blog currently calls the versioned widget endpoints and keeps a reusable client-side widget loader so future widgets can plug into the same pattern.
