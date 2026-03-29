@@ -76,6 +76,7 @@ bun run dev
 - `GITHUB_TOKEN` - github personal access token
 - `SPOTIFY_CLIENT_ID`
 - `SPOTIFY_CLIENT_SECRET`
+- `SPOTIFY_REDIRECT_URI` - used by the helper script for oauth, defaults to `http://127.0.0.1:8898/callback`
 - `SPOTIFY_REFRESH_TOKEN`
 
 ## creating tokens
@@ -107,14 +108,31 @@ curl "http://localhost:4010/api/v1/widgets/github/contributions?username=shameek
    - `SPOTIFY_CLIENT_ID`
    - `SPOTIFY_CLIENT_SECRET`
 4. add a redirect uri in the spotify app settings. for local use, something like `http://127.0.0.1:8898/callback` is fine.
-5. get an authorization code by opening a url like this in your browser, replacing the placeholders:
+5. easiest path: use the helper script.
+
+```bash
+python3 scripts/spotify_refresh_token.py
+```
+
+that prints the exact authorization url using your `.env` values.
+
+6. open that url in your browser and approve the app.
+7. after spotify redirects, copy the `code=...` value from the callback url and run:
+
+```bash
+python3 scripts/spotify_refresh_token.py --code '<spotify_code>' --write-env
+```
+
+this exchanges the code and writes `SPOTIFY_REFRESH_TOKEN` back into `.env`.
+
+8. manual flow if you want it instead of the script:
 
 ```text
 https://accounts.spotify.com/authorize?client_id=<client_id>&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A8898%2Fcallback&scope=user-read-currently-playing%20user-read-recently-played
 ```
 
-6. after approving, spotify redirects to your callback uri with `?code=...` in the url.
-7. exchange that code for refresh/access tokens:
+9. after approving, spotify redirects to your callback uri with `?code=...` in the url.
+10. exchange that code for refresh/access tokens:
 
 ```bash
 curl -X POST "https://accounts.spotify.com/api/token" \
@@ -125,7 +143,7 @@ curl -X POST "https://accounts.spotify.com/api/token" \
   -d "redirect_uri=http://127.0.0.1:8898/callback"
 ```
 
-8. put the returned `refresh_token` into `SPOTIFY_REFRESH_TOKEN` in `.env`.
+11. put the returned `refresh_token` into `SPOTIFY_REFRESH_TOKEN` in `.env` if you did not use `--write-env`.
 
 after that, test with:
 
