@@ -54,6 +54,18 @@ docker compose up --build
 
 service will be available at `http://localhost:4010`.
 
+for homeserver deployment later, the intended flow is:
+
+1. build the image in this repo
+2. tag it appropriately
+3. reference that image from the homeserver compose setup
+
+example:
+
+```bash
+docker build -t pulse:latest .
+```
+
 ## tests + checks
 
 ```bash

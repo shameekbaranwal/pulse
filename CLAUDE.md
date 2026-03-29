@@ -62,6 +62,13 @@ bun install
 bun run dev
 ```
 
+## container
+
+- pulse ships as a single bun container
+- container should listen on port `4010`
+- build the image inside this repo, then reference that image from the homeserver compose setup later
+- local image testing can use `docker compose up --build`
+
 ## implementation preferences
 
 - keep this service dependency-light
