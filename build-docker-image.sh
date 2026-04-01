@@ -6,6 +6,10 @@ IMAGE_TAG="${1:-pulse:latest}"
 
 cd "$SCRIPT_DIR"
 
+printf 'running validation for pulse...\n'
+bun run check
+bun test
+
 docker build -t "$IMAGE_TAG" .
 
 printf 'built image %s\n' "$IMAGE_TAG"
